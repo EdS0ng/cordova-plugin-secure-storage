@@ -3,6 +3,10 @@
 ## Introduction
 
 This plugin is for use with [Cordova](http://incubator.apache.org/cordova/) and allows your application to securely store secrets on iOS & Android phones.
+<<<<<<< HEAD
+This fork differs from the original repository in the Android implementation. Instead of saving values to local storage, Encrypted keys and values are stored in files saved in Android App Internal Storage. (Cordova.file.dataDirectory).
+=======
+>>>>>>> e743f4f414b9fe715ea543da24dd06ded8b9a1f9
 
 ### Contents
 
@@ -12,6 +16,10 @@ This plugin is for use with [Cordova](http://incubator.apache.org/cordova/) and 
 
 ##<a name="installation"></a>Installation
 
+<<<<<<< HEAD
+```sh
+cordova plugin add https://github.com/EdS0ng/cordova-plugin-secure-storage.git
+=======
 Below are the methods for installing this plugin automatically using command line tools. For additional info, take a look at the [Plugman Documentation](https://github.com/apache/cordova-plugman/blob/master/README.md) and [Cordova Plugin Specification](https://github.com/alunny/cordova-plugin-spec).
 
 ### Cordova
@@ -29,6 +37,7 @@ or if you want to be running the development version,
 
 ```sh
 cordova plugin add https://github.com/crypho/cordova-plugin-secure-storage.git
+>>>>>>> e743f4f414b9fe715ea543da24dd06ded8b9a1f9
 ```
 
 ##<a name="plugin_api"></a> Plugin API
@@ -98,7 +107,11 @@ For example, include in your ``config.xml`` the following:
 
 #### iOS 7 Support
 
+<<<<<<< HEAD
+iOS 7 is supported without ``WhenPasscodeSetThisDeviceOnly`` option.
+=======
 iOS 7 is supported without ``WhenPasscodeSetThisDeviceOnly`` option. 
+>>>>>>> e743f4f414b9fe715ea543da24dd06ded8b9a1f9
 
 How to test the plugin using iOS 7 simulator:
  * Download and install Xcode 6 into a separate folder, e.g. /Application/Xcode 6/
@@ -113,7 +126,11 @@ On Android there does not exist an equivalent of the iOS KeyChain. The ``SecureS
 * A random 256-bit AES key is generated in the browser.
 * The AES key encrypts the value.
 * The AES key is encrypted with a device-generated RSA (RSA/ECB/PKCS1Padding) from the Android KeyStore.
+<<<<<<< HEAD
+* The combination of the encrypted AES key and value are stored in ``Internal App Storage``.
+=======
 * The combination of the encrypted AES key and value are stored in ``localStorage``.
+>>>>>>> e743f4f414b9fe715ea543da24dd06ded8b9a1f9
 
 The inverse process is followed on ``get``. AES is provided by the [sjcl](https://github.com/bitwiseshiftleft/sjcl) library.
 

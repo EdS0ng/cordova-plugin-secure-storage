@@ -5,6 +5,7 @@ var _AES_PARAM = {
     mode: 'ccm',
     cipher: 'aes'
  };
+var CRED_FILE_PATH;
 
 var _checkCallbacks = function (success, error) {
 
@@ -20,6 +21,14 @@ var _checkCallbacks = function (success, error) {
 
     return true;
 };
+
+function _checkFileName (fileName) {
+  if (fileName[0] === '/') {
+    return false;
+  }
+
+  return true;
+}
 
 var SecureStorageiOS = function (success, error, service) {
     this.service = service;
@@ -53,57 +62,132 @@ var SecureStorageAndroid = function (success, error, service) {
 
 SecureStorageAndroid.prototype = {
 
-    get: function (success, error, key) {
-        if (!_checkCallbacks(success, error))
-            return;
-        var payload = localStorage.getItem('_SS_' + key);
-        if (!payload) {
-            error('Key "' + key + '" not found.');
-            return;
+    get: function (success, error, fileName) {
+        if (!_checkCallbacks(success, error)) return;
+        if (!_checkFileName(fileName)) {
+          error(new Error('File Name Cannot Start with /'));
+          return;
         }
-        try {
-            payload = JSON.parse(payload);
-            var AESKey = payload.key;
-            cordova.exec(
-                function (AESKey) {
+        if (!CRED_FILE_PATH) {
+          CRED_FILE_PATH = cordova.file.dataDirectory;
+        }
+
+        window.resolveLocalFileSystemURL(CRED_FILE_PATH, function (fileSystem) {
+          fileSystem.getFile(fileName+'.txt', {create:false}, function (fileEntry) {
+            fileEntry.file(function (fileData) {
+              var reader = new FileReader();
+
+              reader.onloadend = function (evt) {
+                if (evt.target.result !== undefined || evt.target.result !== null) {
+                  var payload = evt.target.result;
+                  try {
+                    payload = JSON.parse(payload);
+                  } catch (e) {
+                    error(e);
+                  }
+                  // if (!payload) {
+                  //   error(new);
+                  //   return;
+                  // }
+
+                  var AESKey = payload.Key;
+
+                  var successCB = function (AESKey) {
                     try {
-                        AESKey = sjcl_ss.codec.base64.toBits(AESKey);
-                        var value = sjcl_ss.decrypt(AESKey, payload.value);
+                        var value = sjcl_ss.decrypt(sjcl_ss.codec.base64.toBits(AESKey), payload.value);
                         success(value);
                     } catch (e) {
                         error(e);
                     }
-                },
-                error, "SecureStorage", "decrypt", [AESKey]);
-        } catch (e) {
-            error(e);
-        }
+                  };
 
+                  cordova.exec(successCB, error, "SecureStorage", "decrypt", [AESKey]);
+
+                } else if (evt.target.error !== undefined || evt.target.error !== null) {
+                  error(evt.target.error);
+                } else {
+                  error({code: null, message: 'READER_ONLOADEND_ERR'});
+                }
+              };
+
+              reader.readAsText(fileData);
+            }, function (err) {
+              error(err);
+            });
+          }, function (err) {
+            error(err);
+          });
+        }, function (err) {
+          error(err);
+        });
     },
 
-    set: function (success, error, key, value) {
-        if (!_checkCallbacks(success, error))
-            return;
+    set: function (success, error, fileName, value) {
+        if (!_checkCallbacks(success, error)) return;
+
+        if (!CRED_FILE_PATH) {
+          CRED_FILE_PATH = cordova.file.dataDirectory;
+        }
 
         var AESKey = sjcl_ss.random.randomWords(8);
         _AES_PARAM.adata = this.service;
         value = sjcl_ss.encrypt(AESKey, value, _AES_PARAM);
 
-        // Ecrypt the AES key
-        cordova.exec(
-            function (encKey) {
-                localStorage.setItem('_SS_' + key, JSON.stringify({key: encKey, value: value}));
-                success(key);
-            },
-            function (err) {
+        var successCB = function (encKey) {
+          try {
+            var encInfo = JSON.stringify({
+              Key:encKey,
+              value:value
+            });
+          }catch (e) {
+            error(e);
+          }
+
+          window.resolveLocalFileSystemURL(CRED_FILE_PATH, function (fileSystem) {
+            fileSystem.getFile(fileName+'.txt', {create:true, exclusive:false}, function (fileEntry) {
+              fileEntry.createWriter(function (writer) {
+                writer.onwriteend = function (evt) {
+                  if (this.error) {
+                    error(this.error);
+                  }else {
+                    success(fileName);
+                  }
+                };
+
+                writer.write(encInfo);
+              }, function (err) {
                 error(err);
-            },
-            "SecureStorage", "encrypt", [sjcl_ss.codec.base64.fromBits(AESKey)]);
+              });
+            }, function (er) {
+              error(er);
+            });
+          }, function (e) {
+            error(e);
+          });
+        };
+
+        // Encrypt the AES key
+        cordova.exec(successCB,error,"SecureStorage", "encrypt", [sjcl_ss.codec.base64.fromBits(AESKey)]);
     },
 
-    remove: function(success, error, key) {
-        localStorage.removeItem('_SS_' + key);
-        success(key);
+    remove: function(success, error, fileName) {
+      if (!CRED_FILE_PATH) {
+        CRED_FILE_PATH = cordova.file.dataDirectory;
+      }
+
+        window.resolveLocalFileSystemURL(CRED_FILE_PATH, function (fileSystem) {
+          fileSystem.getFile(fileName+'.txt', {create:false}, function (fileEntry) {
+            fileEntry.remove(function () {
+              success(fileName);
+            }, function (err) {
+              error(err);
+            });
+          }, function (e) {
+            error(e);
+          });
+        }, function (er) {
+          error(er);
+        });
     }
 };
 
