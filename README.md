@@ -14,10 +14,7 @@ This fork differs from the original repository in the Android implementation. In
 
 ##<a name="installation"></a>Installation
 
-```sh
 cordova plugin add https://github.com/EdS0ng/cordova-plugin-secure-storage.git
-=======
-
 
 ##<a name="plugin_api"></a> Plugin API
 
