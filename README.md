@@ -3,8 +3,8 @@
 ## Introduction
 
 This plugin is for use with [Cordova](http://incubator.apache.org/cordova/) and allows your application to securely store secrets on iOS & Android phones.
+
 This fork differs from the original repository in the Android implementation. Instead of saving values to local storage, Encrypted keys and values are stored in files saved in Android App Internal Storage. (Cordova.file.dataDirectory).
-=======
 
 ### Contents
 
